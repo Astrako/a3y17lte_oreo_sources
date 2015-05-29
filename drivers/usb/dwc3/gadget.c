@@ -2167,9 +2167,6 @@ static void dwc3_endpoint_transfer_complete(struct dwc3 *dwc,
 	int			clean_busy;
 	u32			is_xfer_complete;
 
-	if (dep->endpoint.desc == NULL)
-		return;
-
 	is_xfer_complete = (event->endpoint_event == DWC3_DEPEVT_XFERCOMPLETE);
 
 	if (event->status & DEPEVT_STATUS_BUSERR)
@@ -2177,7 +2174,7 @@ static void dwc3_endpoint_transfer_complete(struct dwc3 *dwc,
 
 	clean_busy = dwc3_cleanup_done_reqs(dwc, dep, event, status);
 	if (clean_busy && (is_xfer_complete ||
-			usb_endpoint_xfer_isoc(dep->endpoint.desc)))
+				usb_endpoint_xfer_isoc(dep->endpoint.desc)))
 		dep->flags &= ~DWC3_EP_BUSY;
 
 	/*
