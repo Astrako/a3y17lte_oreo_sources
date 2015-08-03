@@ -1802,6 +1802,9 @@ void xhci_mem_cleanup(struct xhci_hcd *xhci)
 	del_timer_sync(&xhci->cmd_timer);
 #endif
 
+	if (timer_pending(&xhci->cmd_timer))
+		del_timer_sync(&xhci->cmd_timer);
+
 	/* Free the Event Ring Segment Table and the actual Event Ring */
 	size = sizeof(struct xhci_erst_entry)*(xhci->erst.num_entries);
 	if (xhci->erst.entries)
