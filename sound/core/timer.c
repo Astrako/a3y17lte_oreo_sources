@@ -504,6 +504,44 @@ static int snd_timer_stop1(struct snd_timer_instance *timeri, bool stop)
 	int result = 0;
 	unsigned long flags;
 
+	if (timeri == NULL || ticks < 1)
+		return -EINVAL;
+	if (timeri->flags & SNDRV_TIMER_IFLG_SLAVE) {
+		result = snd_timer_start_slave(timeri);
+		snd_timer_notify1(timeri, SNDRV_TIMER_EVENT_START);
+		return result;
+	}
+	timer = timeri->timer;
+	if (timer == NULL)
+		return -EINVAL;
+	spin_lock_irqsave(&timer->lock, flags);
+	timeri->ticks = timeri->cticks = ticks;
+	timeri->pticks = 0;
+	result = snd_timer_start1(timer, timeri, ticks);
+	spin_unlock_irqrestore(&timer->lock, flags);
+	snd_timer_notify1(timeri, SNDRV_TIMER_EVENT_START);
+	return result;
+}
+
+static int _snd_timer_stop(struct snd_timer_instance * timeri,
+			   int keep_flag, int event)
+{
+	struct snd_timer *timer;
+	unsigned long flags;
+
+	if (snd_BUG_ON(!timeri))
+		return -ENXIO;
+
+	if (timeri->flags & SNDRV_TIMER_IFLG_SLAVE) {
+		if (!keep_flag) {
+			spin_lock_irqsave(&slave_active_lock, flags);
+			timeri->flags &= ~SNDRV_TIMER_IFLG_RUNNING;
+			list_del_init(&timeri->ack_list);
+			list_del_init(&timeri->active_list);
+			spin_unlock_irqrestore(&slave_active_lock, flags);
+		}
+		goto __end;
+	}
 	timer = timeri->timer;
 	if (!timer)
 		return -EINVAL;
