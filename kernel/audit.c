@@ -90,8 +90,14 @@ u32		audit_ever_enabled;
 
 EXPORT_SYMBOL_GPL(audit_enabled);
 
+// [ SEC_SELINUX_PORTING_COMMON
 /* Default state when kernel boots without any parameters. */
+#ifdef CONFIG_SECURITY_SEC_SELINUX
 static u32	audit_default = 1;
+#else
+static u32	audit_default = AUDIT_OFF;
+#endif
+// ] SEC_SELINUX_PORTING_COMMON
 
 /* If auditing cannot proceed, audit_failure selects what happens. */
 static u32	audit_failure = AUDIT_FAIL_PRINTK;
@@ -398,7 +404,7 @@ static void audit_printk_skb(struct sk_buff *skb)
 	struct nlmsghdr *nlh = nlmsg_hdr(skb);
 	char *data = nlmsg_data(nlh);
 
-	if (nlh->nlmsg_type != AUDIT_EOE && nlh->nlmsg_type != AUDIT_NETFILTER_CFG) {
+	if (nlh->nlmsg_type != AUDIT_EOE) {
 // [ SEC_SELINUX_PORTING_EXYNOS
 #ifdef CONFIG_SEC_AVC_LOG
 		sec_debug_avc_log("type=%d %s\n", nlh->nlmsg_type, data);
