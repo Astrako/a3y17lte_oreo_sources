@@ -1340,7 +1340,6 @@ select_task_rq_rt(struct task_struct *p, int cpu, int sd_flag, int flags)
 	     curr->prio <= p->prio)) {
 		int target = find_lowest_rq(p);
 
-		if (target != -1)
 		/*
 		* Don't bother moving it if the destination CPU is
 		* not running a lower priority task.
@@ -1617,6 +1616,7 @@ static struct rq *find_lock_lowest_rq(struct task_struct *task, struct rq *rq)
 
 		lowest_rq = cpu_rq(cpu);
 		
+		
 		if (lowest_rq->rt.highest_prio.curr <= task->prio) {
  			/*
 			* Target rq has tasks of equal or higher priority,
@@ -1626,6 +1626,7 @@ static struct rq *find_lock_lowest_rq(struct task_struct *task, struct rq *rq)
  			lowest_rq = NULL;
  			break;
  		}
+
 
 		/* if the prio of this runqueue changed, try again */
 		if (double_lock_balance(rq, lowest_rq)) {
